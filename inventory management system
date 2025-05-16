@@ -1,0 +1,92 @@
+import java.util.*;
+import java.time.LocalDate;
+// Base User class
+abstract class User {
+    String name;
+    User(String name) { this.name = name; }
+    abstract String getRole();
+}
+// Admin
+class Admin extends User {
+    Admin(String name) { super(name); }
+    String getRole() { return "Admin"; }
+    void addItem(Inventory inv, Item item, int qty) { inv.add(item, qty); }
+    void removeItem(Inventory inv, String name, int qty) { inv.remove(name, qty); }
+}
+// Accountant
+class Accountant extends User {
+    Accountant(String name) { super(name); }
+    String getRole() { return "Accountant"; }
+    void printReport(Inventory inv) { inv.print(); }
+}
+// Cashier
+class Cashier extends User {
+    Cashier(String name) { super(name); }
+    String getRole() { return "Cashier"; }
+    boolean sellItem(Inventory inv, String name, int qty) {
+        return inv.remove(name, qty);
+    }
+}
+// Base Item
+abstract class Item {
+    String name; double price;
+    Item(String n, double p) { name = n; price = p; }
+    abstract String category();
+    public String toString() { return name + " (" + category() + ") $" + price; }
+}
+class FreshProduce extends Item {
+    LocalDate exp;
+    FreshProduce(String n, double p, LocalDate e) { super(n,p); exp = e; }
+    String category() { return "Fresh Produce"; }
+    public String toString() { return super.toString() + ", expires " + exp; }
+}
+class Provision extends Item {
+    Provision(String n, double p) { super(n,p); }
+    String category() { return "Provision"; }
+}
+class Electronics extends Item {
+    int warranty;
+    Electronics(String n, double p, int w) { super(n,p); warranty = w; }
+    String category() { return "Electronics"; }
+    public String toString() { return super.toString() + ", warranty " + warranty + "yrs"; }
+}
+// Inventory
+class Inventory {
+    Map<String, Integer> stock = new HashMap<>();
+    Map<String, Item> items = new HashMap<>();
+
+    void add(Item item, int qty) {
+        items.put(item.name, item);
+        stock.put(item.name, stock.getOrDefault(item.name, 0) + qty);
+    }
+    boolean remove(String name, int qty) {
+        int available = stock.getOrDefault(name,0);
+        if (available < qty) return false;
+        stock.put(name, available - qty);
+        if (stock.get(name) == 0) {
+            stock.remove(name);
+            items.remove(name);
+        }
+        return true;
+    }
+    void print() {
+        System.out.println("Inventory:");
+        for (String name : items.keySet())
+            System.out.println(items.get(name) + ", qty: " + stock.get(name));
+    }
+}
+public class InventorySystemDemo {
+    public static void main(String[] args) {
+        Inventory inv = new Inventory();
+        Admin admin = new Admin("Alice");
+        Accountant acct = new Accountant("Bob");
+        Cashier cash = new Cashier("Carol");
+        admin.addItem(inv, new FreshProduce("Apple", 0.5, LocalDate.of(2024,7,31)), 100);
+        admin.addItem(inv, new Provision("Rice", 1.2), 50);
+        admin.addItem(inv, new Electronics("Laptop",750,2), 10);
+        acct.printReport(inv);
+        System.out.println("Selling 5 Apples: " + (cash.sellItem(inv, "Apple", 5) ? "Success" : "Fail"));
+        System.out.println("Selling 60 Rice: " + (cash.sellItem(inv, "Rice", 60) ? "Success" : "Fail"));
+        acct.printReport(inv);
+    }
+}
