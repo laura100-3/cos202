@@ -1,4 +1,4 @@
-                 Key components of the system:
+
 The inventory management system is structured using Object-Oriented Programming (OOP) principles, featuring a clear hierarchy of classes that represent users and items within the system.
 User Classes
 1.	User Class: This is an abstract base class that defines common attributes and methods for all user types. It includes properties such as username and name, along with an abstract method getRole() that must be implemented by derived classes.
